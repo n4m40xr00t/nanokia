@@ -47,63 +47,45 @@ A powerful Python-based configuration management and security analysis tool for 
 
 ##  Usage
 
-### Basic Usage
+### Interactive Usage
 
 ```bash
-python nanokia.py <router_ip>
+python3 nanokia.py <router_ip>
 ```
 
 ### Command-Line Arguments
 
 ```bash
-python nanokia.py <target_ip> [options]
+usage: nanokia.py [-h] [-u USERNAME] [-p PASSWORD] [-v] [-o DIR] [--download-only] [--list-devices] [--dump-wifi] [--dump-accounts] [--system-info]
+                  [--dump-tr069] [--dump-hashes] [--full-dump] [--enable-ssh] [--ssh-user SSH_USER] [--ssh-pass SSH_PASS]
+                  target
 
-Positional Arguments:
-  target                Target router IP address
+naNOKIA - Nokia Router Configuration Tool
 
-Optional Arguments:
-  -u, --username        Username (default: AdminGPON)
-  -p, --password        Password (default: ALC#FGU)
-  -o, --output          Output directory (default: naNOKIA_configs)
+positional arguments:
+  target                Target router IP address (e.g., 192.168.1.254)
+
+options:
+  -h, --help            show this help message and exit
+  -u, --username USERNAME
+                        Login username (default: AdminGPON)
+  -p, --password PASSWORD
+                        Login password (default: ALC#FGU)
   -v, --verbose         Enable verbose output
-  --download-only       Only download config (skip decrypt/parse)
-  --decrypt-only FILE   Decrypt existing config file
-  --parse-only FILE     Parse existing XML file
-  --help                Show help menu
+  -o, --output-dir DIR  Output directory for config files (default: naNOKIA_configs)
+  --download-only       Download & decrypt config only
+  --list-devices        List connected devices
+  --dump-wifi           Dump WiFi credentials
+  --dump-accounts       Dump user accounts
+  --system-info         Show system information
+  --dump-tr069          Dump TR-069 configuration
+  --dump-hashes         Extract password hashes
+  --full-dump           Full information dump (all above)
+  --enable-ssh          Enable SSH/Telnet access
+  --ssh-user SSH_USER   SSH username for --enable-ssh (default: ONTUSER)
+  --ssh-pass SSH_PASS   SSH password for --enable-ssh (default: admin)
+                                                                            
 ```
-
-### Example Commands
-
-**Download and decrypt router config:**
-```bash
-python nanokia.py 192.168.1.1
-```
-
-**Use custom credentials:**
-```bash
-python nanokia.py 192.168.1.1 -u admin -p mypassword
-```
-
-**Enable verbose mode:**
-```bash
-python nanokia.py 192.168.1.1 -v
-```
-
-**Only download config:**
-```bash
-python nanokia.py 192.168.1.1 --download-only
-```
-
-**Decrypt existing config file:**
-```bash
-python nanokia.py 192.168.1.1 --decrypt-only config.cfg
-```
-
-**Parse existing XML config:**
-```bash
-python nanokia.py 192.168.1.1 --parse-only config-23102025-232854.xml
-```
-
 ## ⚠️ Disclaimer
 
 **This tool is intended for educational purposes, security research, and authorized network administration only.**
