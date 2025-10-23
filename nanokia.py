@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-#@n4m40xr00t
-#@rafok2v9c   
-
 
 import requests
 import os
@@ -112,6 +109,10 @@ class Nanokia:
         self.csrf_token = None
         self.pubkey = None
         self.nonce = None
+        self.original_config_encrypted = False
+        self.original_config_endian = True
+        self.original_config_pkcs_pass = None
+        self.original_config_fw_magic = 0xffffffff
         
         if output_dir:
             self.output_dir = output_dir
@@ -372,7 +373,6 @@ class Nanokia:
             pkcsPass = None
             
             if big_endian == None:
-
                 decrypted = None
                 try:
                     decrypted = RouterCrypto().decrypt(cfg_data)
@@ -387,6 +387,10 @@ class Nanokia:
                 self.verbose_log("Encrypted cfg detected")
                 cfg_data = decrypted
                 encrypted_cfg = True
+            
+            self.original_config_encrypted = encrypted_cfg
+            self.original_config_endian = big_endian
+            self.verbose_log(f"Original config: encrypted={encrypted_cfg}, big_endian={big_endian}")
             
             if self.verbose:
                 endian_msg = "big endian" if big_endian else "little endian"
@@ -406,9 +410,14 @@ class Nanokia:
             if large_header:
                 compressed = cfg_data[0x28 : 0x28 + data_size]
                 checksum = u32_unpack(cfg_data[0x10:0x14], big_endian)
+                fw_magic = u32_unpack(cfg_data[0x20:0x24], big_endian)
             else:
                 compressed = cfg_data[0x14 : 0x14 + data_size]
                 checksum = u32_unpack(cfg_data[0x08:0x0C], big_endian)
+                fw_magic = u32_unpack(cfg_data[0x10:0x14], big_endian)
+            
+            self.original_config_fw_magic = fw_magic
+            self.verbose_log(f"fw_magic = {hex(fw_magic)}")
             
             if (binascii.crc32(compressed) & 0xFFFFFFFF != checksum):
                 self.log("CRC32 checksum failed", Colors.RED, "[ERROR]")
@@ -417,8 +426,8 @@ class Nanokia:
             xml_data = None
             try:
                 xml_data = zlib.decompress(compressed)
+                pkcsPass = None
             except zlib.error:
-
                 encData = None
                 pkcsSalt = None
                 tryPasswords = []
@@ -439,6 +448,7 @@ class Nanokia:
                     try:
                         xml_data = zlib.decompress(compressed)
                         pkcsPass = currPass
+                        self.verbose_log(f"PKCS password found: {currPass[:20]}...")
                         break
                     except zlib.error:
                         pass
@@ -446,6 +456,10 @@ class Nanokia:
                 if xml_data is None:
                     self.log("Failed to decrypt config (exhausted passwords)", Colors.RED, "[ERROR]")
                     return None
+            
+            self.original_config_pkcs_pass = pkcsPass
+            if pkcsPass:
+                self.verbose_log(f"Config uses PKCS password encryption")
             
             out_filename = f'config-{datetime.now().strftime("%d%m%Y-%H%M%S")}.xml'
             if xml_data[0] != ord('<'):
@@ -1018,15 +1032,18 @@ class Nanokia:
         self.log("Encrypting modified configuration...", Colors.YELLOW)
         
         try:
-
             with open(xml_file, 'rb') as xf:
                 xml_data = xf.read()
             
-            big_endian = True
+            big_endian = self.original_config_endian
             large_header = False
-            fw_magic = 0xffffffff
-            pkcsPass = None
-            encrypted_cfg = False
+            fw_magic = self.original_config_fw_magic
+            pkcsPass = self.original_config_pkcs_pass
+            encrypted_cfg = self.original_config_encrypted
+            
+            self.verbose_log(f"Encrypting with: encrypted={encrypted_cfg}, big_endian={big_endian}, fw_magic={hex(fw_magic)}")
+            if pkcsPass:
+                self.verbose_log(f"Using PKCS password: {pkcsPass[:20]}...")
             
             compressed = zlib.compress(xml_data)
             
@@ -1079,11 +1096,13 @@ class Nanokia:
             self.log(f"Encryption error: {e}", Colors.RED, "[ERROR]")
             return None
     
-    def get_csrf_token_from_page(self):
+    def get_csrf_token_from_page(self, page_url="/usb.cgi?backup"):
         try:
-            response = self.session.get(f"{self.target}/usb.cgi?backup")
+            response = self.session.get(f"{self.target}{page_url}")
             if response.status_code == 200:
-
+                if self.verbose:
+                    self.verbose_log(f"Page content length: {len(response.text)}")
+                
                 match = re.search(r'<input[^>]*name="csrf_token"[^>]*value="([^"]+)"', response.text)
                 if match:
                     return match.group(1)
@@ -1100,26 +1119,54 @@ class Nanokia:
                 self.verbose_log(f"Error extracting CSRF token: {e}")
         return None
     
+    def get_import_form_field(self):
+        try:
+            response = self.session.get(f"{self.target}/usb.cgi?backup")
+            if response.status_code == 200:
+                file_input = re.search(r'<input[^>]*type=["\']file["\'][^>]*name=["\']([^"\'^>]+)["\']', response.text)
+                if file_input:
+                    field_name = file_input.group(1)
+                    self.verbose_log(f"Found file input field name: {field_name}")
+                    return field_name
+                
+                file_input = re.search(r'<input[^>]*name=["\']([^"\'^>]+)["\'][^>]*type=["\']file["\']', response.text)
+                if file_input:
+                    field_name = file_input.group(1)
+                    self.verbose_log(f"Found file input field name: {field_name}")
+                    return field_name
+        except Exception as e:
+            if self.verbose:
+                self.verbose_log(f"Error finding file input field: {e}")
+        return 'filename'
+    
     def upload_config(self, config_file):
         self.log("Uploading modified configuration...", Colors.YELLOW)
         
         try:
-
-            csrf_token = self.get_csrf_token_from_page()
+            csrf_token = self.get_csrf_token_from_page("/usb.cgi?backup")
             if not csrf_token:
                 self.log("Failed to get CSRF token", Colors.RED, "[ERROR]")
                 return False
             
+            file_field_name = self.get_import_form_field()
+            self.verbose_log(f"Using file field name: {file_field_name}")
+            
             with open(config_file, 'rb') as f:
                 config_data = f.read()
             
+            self.verbose_log(f"Config file size: {len(config_data)} bytes")
+            
             files = {
-                'filename': ('config.cfg', config_data, 'application/octet-stream')
+                file_field_name: ('config.cfg', config_data, 'application/octet-stream')
             }
             data = {
                 'csrf_token': csrf_token,
                 'csrf_val': ''
             }
+            
+            self.verbose_log(f"Uploading to: {self.target}/usb.cgi?import")
+            self.verbose_log(f"CSRF token: {csrf_token[:20] if len(csrf_token) > 20 else csrf_token}...")
+            self.verbose_log(f"File field: {file_field_name}, Filename: config.cfg")
             
             response = self.session.post(
                 f"{self.target}/usb.cgi?import",
@@ -1127,23 +1174,46 @@ class Nanokia:
                 data=data
             )
             
-            if response.status_code == 200:
-
-                if 'doneUpload' in response.text:
+            self.verbose_log(f"Upload response status: {response.status_code}")
+            self.verbose_log(f"Upload response text: {response.text[:500]}")
+            
+            if response.status_code in [200, 299]:
+                response_lower = response.text.lower()
+                
+                if 'doneupload' in response_lower or 'success' in response_lower or response.status_code == 299:
                     self.log("Configuration uploaded successfully!", Colors.GREEN, "[+]")
                     self.log("Router is rebooting... Wait 30-60 seconds", Colors.YELLOW, "[INFO]")
                     return True
-                elif 'illegalUpload' in response.text:
-                    self.log("Upload rejected: Router requires filename to be 'config.cfg'", Colors.RED, "[ERROR]")
-                    self.verbose_log(f"Response: {response.text}")
+                elif 'file invalid' in response_lower or 'failupload' in response_lower:
+                    self.log("Upload rejected: File Invalid!", Colors.RED, "[ERROR]")
+                    self.log(f"Response: {response.text[:200]}", Colors.YELLOW)
+                    self.log("Possible issues:", Colors.YELLOW, "[INFO]")
+                    self.log("  1. Config file format/encryption mismatch", Colors.WHITE)
+                    self.log("  2. File header/magic bytes incorrect", Colors.WHITE)
+                    self.log("  3. Router firmware version incompatible", Colors.WHITE)
+                    self.log(f"  4. Config file size: {len(config_data)} bytes", Colors.WHITE)
                     return False
+                elif 'illegalupload' in response_lower or 'illegal' in response_lower:
+                    self.log("Upload rejected: Illegal upload", Colors.RED, "[ERROR]")
+                    self.log(f"Response: {response.text[:200]}", Colors.YELLOW)
+                    return False
+                elif len(response.text.strip()) == 0:
+                    self.log("Empty response - upload likely successful", Colors.GREEN, "[+]")
+                    self.log("Router is rebooting... Wait 30-60 seconds", Colors.YELLOW, "[INFO]")
+                    return True
                 else:
-                    self.log("Upload status unclear - check router manually", Colors.YELLOW, "[WARN]")
-                    self.verbose_log(f"Response: {response.text}")
+                    self.log(f"Unexpected response (status {response.status_code})", Colors.YELLOW, "[WARN]")
+                    self.log(f"Response: {response.text[:300]}", Colors.WHITE)
+                    
+                    user_continue = input(f"\n{Colors.CYAN}[?] Response unclear. Assume success and wait for reboot? (y/n): {Colors.RESET}").strip().lower()
+                    if user_continue == 'y':
+                        self.log("Assuming upload successful...", Colors.GREEN, "[+]")
+                        self.log("Waiting for router to reboot...", Colors.YELLOW, "[INFO]")
+                        return True
                     return False
             else:
                 self.log(f"Upload failed: HTTP {response.status_code}", Colors.RED, "[ERROR]")
-                self.verbose_log(f"Response: {response.text[:200]}")
+                self.log(f"Response: {response.text[:300]}", Colors.YELLOW)
                 return False
                 
         except Exception as e:
