@@ -1516,7 +1516,7 @@ def main():
             exploit.log("="*60, Colors.GREEN)
             exploit.log(f"Target: {target_ip}", Colors.WHITE, "[INFO]")
             exploit.log(f"SSH/Telnet credentials: {args.ssh_user}:{args.ssh_pass}", Colors.WHITE, "[INFO]")
-            exploit.log(f"Connect: ssh {args.ssh_user}@{target_ip}", Colors.WHITE, "[INFO]")
+            exploit.log(f"Connect: ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa {args.ssh_user}@{target_ip}", Colors.WHITE, "[INFO]")
             exploit.log("="*60 + "\n", Colors.GREEN)
         
         return 0
@@ -1665,7 +1665,7 @@ def main():
             exploit.log("="*60, Colors.GREEN)
             exploit.log(f"Target: {target_ip}", Colors.WHITE, "[INFO]")
             exploit.log(f"SSH/Telnet credentials: {ssh_user}:{ssh_pass}", Colors.WHITE, "[INFO]")
-            exploit.log(f"Connect: ssh {ssh_user}@{target_ip}", Colors.WHITE, "[INFO]")
+            exploit.log(f"Connect: ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa {ssh_user}@{target_ip}", Colors.WHITE, "[INFO]")
             exploit.log("="*60 + "\n", Colors.GREEN)
         
         cont = input(f"\n{Colors.CYAN}[?] Perform another operation? (y/n): {Colors.RESET}").strip().lower()
