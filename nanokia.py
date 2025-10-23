@@ -1240,7 +1240,7 @@ class Nanokia:
                     
                     if result == 0:
                         self.log(f"SSH port is open on {target_ip}:22", Colors.GREEN, "[+]")
-                        self.log(f"Connect using: ssh {username}@{target_ip}", Colors.GREEN, "[+]")
+                        self.log(f"Connect using: ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa {username}@{target_ip}", Colors.GREEN, "[+]")
                         self.log(f"Password: {password}", Colors.GREEN, "[+]")
                         return True
                 except:
