@@ -36,8 +36,8 @@ A powerful Python-based configuration management and security analysis tool for 
 
 1. **Clone or download the repository:**
    ```bash
-   git clone <your-repo-url>
-   cd router_test
+   git clone https://github.com/n4m40xr00t/nanokia
+   cd nanokia
    ```
 
 2. **Install dependencies:**
@@ -50,7 +50,7 @@ A powerful Python-based configuration management and security analysis tool for 
 ### Interactive Usage
 
 ```bash
-python3 nanokia.py <router_ip>
+python3 nanokia.py <ip>
 ```
 
 ### Command-Line Arguments
