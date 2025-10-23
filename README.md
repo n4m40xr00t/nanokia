@@ -3,7 +3,7 @@
 A powerful Python-based configuration management and security analysis tool for Nokia G-1425G-A routers.
 
 <p align="center">
-  <img src="https://github.com/n4m40xr00t/nanokia/blob/main/screenshots/help_menu.png?raw=true" alt="Help menu screeenshot" width="1000px"/>
+  <img src="https://github.com/n4m40xr00t/nanokia/blob/main/screenshots/option_menu.png?raw=true" alt="Help menu screeenshot" width="1000px"/>
 </p>
 
 ## 📋 Overview
@@ -20,7 +20,10 @@ A powerful Python-based configuration management and security analysis tool for 
 - **🔑 Account Dumping** - Extract web admin, telnet/SSH, super user, and TR-069 credentials
 - **📊 System Information** - Display detailed router system information
 
-![Options Menu](option_menu.png)
+
+<p align="center">
+  <img src="https://github.com/n4m40xr00t/nanokia/blob/main/screenshots/help_menu.png?raw=true" alt="Help menu screeenshot" width="1000px"/>
+</p>
 
 ## 🛠️ Requirements
 
