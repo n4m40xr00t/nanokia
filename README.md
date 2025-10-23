@@ -32,6 +32,10 @@ A powerful Python-based configuration management and security analysis tool for 
   - `requests`
   - `pycryptodome`
 
+## Operating Systems
+   Linux/Windows
+
+
 ##  Installation
 
 1. **Clone or download the repository:**
