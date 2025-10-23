@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+#@n4m40xr00t
+#@rafok2v9c
 
 import requests
 import os
