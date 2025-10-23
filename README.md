@@ -104,20 +104,6 @@ python nanokia.py 192.168.1.1 --decrypt-only config.cfg
 python nanokia.py 192.168.1.1 --parse-only config-23102025-232854.xml
 ```
 
-## 📂 Output
-
-All output files are saved to the `naNOKIA_configs/` directory by default:
-- **config.cfg** - Raw encrypted configuration file
-- **config-DDMMYYYY-HHMMSS.xml** - Decrypted XML configuration
-
-## 🔒 Security Features
-
-- **RSA Public Key Encryption** - Secure credential transmission
-- **AES-CBC Decryption** - Support for AES-128 and AES-256
-- **PKCS#7 Padding** - Proper cryptographic padding handling
-- **PBKDF2 Key Derivation** - For newer router models (G2425+)
-- **CRC32 Verification** - Ensures config file integrity
-
 ## ⚠️ Disclaimer
 
 **This tool is intended for educational purposes, security research, and authorized network administration only.**
