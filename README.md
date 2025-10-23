@@ -127,22 +127,6 @@ All output files are saved to the `naNOKIA_configs/` directory by default:
 - The authors are not responsible for any misuse or damage caused by this tool
 - Always comply with local laws and regulations
 
-## 🛡️ Supported Models
-
-- Nokia G-1425G-A
-- Potentially compatible with other Nokia GPON routers (untested)
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-
-## 📝 License
-
-This project is provided as-is for educational and research purposes.
-
-## 👨‍💻 Author
-
-Built with ❤️ for security researchers and network administrators
 
 ---
 
