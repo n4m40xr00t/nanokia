@@ -1,4 +1,4 @@
-# naNOKIA 🔐
+# naNOKIA
 
 A powerful Python-based configuration management and security analysis tool for Nokia G-1425G-A routers.
 
@@ -6,33 +6,33 @@ A powerful Python-based configuration management and security analysis tool for 
   <img src="https://github.com/n4m40xr00t/nanokia/blob/main/screenshots/option_menu.png?raw=true" alt="Help menu screeenshot" width="1000px"/>
 </p>
 
-## 📋 Overview
+## Overview
 
 **naNOKIA** is a comprehensive toolkit designed for security researchers and network administrators to interact with Nokia G-1425G-A routers. The tool automates authentication, configuration backup, decryption, and credential extraction processes.
 
-## ✨ Features
+## Features
 
-- **🔐 Automated Authentication** - RSA+AES hybrid encryption for secure login
-- **📥 Configuration Download** - Backup router configurations remotely
-- **🔓 Config Decryption** - Decrypt and decompress Nokia configuration files (AES-128-CBC & AES-256-CBC with PKCS)
-- **📶 WiFi Credential Extraction** - Extract all WiFi SSIDs and passwords
-- **👥 Device Discovery** - List all connected devices with MAC/IP addresses
-- **🔑 Account Dumping** - Extract web admin, telnet/SSH, super user, and TR-069 credentials
-- **📊 System Information** - Display detailed router system information
+- **Automated Authentication** - RSA+AES hybrid encryption for secure login
+- **Configuration Download** - Backup router configurations remotely
+- **Config Decryption** - Decrypt and decompress Nokia configuration files (AES-128-CBC & AES-256-CBC with PKCS)
+- **WiFi Credential Extraction** - Extract all WiFi SSIDs and passwords
+- **Device Discovery** - List all connected devices with MAC/IP addresses
+- **Account Dumping** - Extract web admin, telnet/SSH, super user, and TR-069 credentials
+- **System Information** - Display detailed router system information
 
 
 <p align="center">
   <img src="https://github.com/n4m40xr00t/nanokia/blob/main/screenshots/help_menu.png?raw=true" alt="Help menu screeenshot" width="1000px"/>
 </p>
 
-## 🛠️ Requirements
+##  Requirements
 
 - Python 3.6+
 - Required Python packages:
   - `requests`
   - `pycryptodome`
 
-## 📦 Installation
+##  Installation
 
 1. **Clone or download the repository:**
    ```bash
@@ -45,7 +45,7 @@ A powerful Python-based configuration management and security analysis tool for 
    pip install requests pycryptodome
    ```
 
-## 🚀 Usage
+##  Usage
 
 ### Basic Usage
 
