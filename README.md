@@ -42,7 +42,7 @@ A powerful Python-based configuration management and security analysis tool for 
 
 2. **Install dependencies:**
    ```bash
-   pip install requests pycryptodome
+   pip install -r requirements.txt 
    ```
 
 ##  Usage
