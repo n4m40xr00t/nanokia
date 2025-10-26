@@ -1,6 +1,6 @@
 # naNOKIA
 
-A powerful Python-based configuration management and security analysis tool for Nokia G-1425G-A routers.
+A powerful Python-based configuration management and security analysis tool for Nokia routers.
 
 <p align="center">
   <img src="https://github.com/n4m40xr00t/nanokia/blob/main/screenshots/option_menu.png?raw=true" alt="Help menu screeenshot" width="1000px"/>
@@ -8,7 +8,7 @@ A powerful Python-based configuration management and security analysis tool for 
 
 ## Overview
 
-**naNOKIA** is a comprehensive toolkit designed for security researchers and network administrators to interact with Nokia G-1425G-A routers. The tool automates authentication, configuration backup, decryption, and credential extraction processes.
+**naNOKIA** is a comprehensive toolkit designed for security researchers and network administrators to interact with Nokia routers. The tool automates authentication, configuration backup, decryption, and credential extraction processes.
 
 ## Features
 
