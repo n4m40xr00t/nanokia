@@ -1409,7 +1409,6 @@ class Nanokia:
                 total_gb = total_all / 1024 / 1024 / 1024
                 print(f"  {total_gb:.2f} GB ({total_all:,} bytes)")
             
-            # Total packets
             tx_packets_matches = re.findall(r'<TotalPacketsSent[^>]*v="(\d+)"', content)
             rx_packets_matches = re.findall(r'<TotalPacketsReceived[^>]*v="(\d+)"', content)
             
